@@ -1,0 +1,69 @@
+# Docker compose file for Keycloak, PHP and Postgres.
+version: '3.9'
+
+services:
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    hostname: mailhog.hostname
+    ports:
+      - 1025:1025
+      - 8025:8025
+    environment:
+      - MH_STORAGE=maildir
+    networks:
+      - local-net
+    volumes:
+      - v-mailhog:/maildir
+  keycloak:
+    image: jboss/keycloak
+    container_name: keycloak
+    hostname: keycloak.hostname
+    ports:
+      - 8080:8080
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+      - DB_VENDOR=postgres
+      - DB_ADDR=postgres
+      - DB_DATABASE=keycloak
+      - DB_USER=postgres
+      - DB_PASSWORD=hola123.
+    networks:
+      - local-net
+    depends_on:
+      - postgres
+  postgres:
+    image: danielbg1409/postgres-13-mx
+    container_name: postgres-13
+    hostname: postgres-13.hostname
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=hola123.
+      - POSTGRES_DB=informacion_tic
+    networks:
+      - local-net
+    volumes:
+      - v-postgres-13:/var/lib/postgresql/data
+  informacion-tic:
+    image: danielbg1409/web-php:8.0-latest
+    container_name: informacion-tic
+    hostname: informacion-tic.hostname
+    ports:
+      - 8001:80
+    networks:
+      - local-net
+    volumes:
+      - ./app:/var/www/html
+    depends_on:
+      - postgres
+      - mailhog
+
+volumes:
+  v-mailhog:
+  v-postgres-13:
+
+networks:
+  local-net:
